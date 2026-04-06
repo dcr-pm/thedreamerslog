@@ -21,12 +21,12 @@ const Starfield: React.FC = () => {
     const init = () => {
       resize();
       stars.length = 0;
-      const count = Math.floor((canvas.width * canvas.height) / 8000);
+      const count = Math.floor((canvas.width * canvas.height) / 3500);
       for (let i = 0; i < count; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          r: Math.random() * 1.5 + 0.3,
+          r: Math.random() * 2 + 0.3,
           phase: Math.random() * Math.PI * 2,
           speed: Math.random() * 0.02 + 0.005,
         });
@@ -36,7 +36,7 @@ const Starfield: React.FC = () => {
     const draw = (time: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const star of stars) {
-        const opacity = 0.3 + 0.7 * ((Math.sin(time * star.speed + star.phase) + 1) / 2);
+        const opacity = 0.4 + 0.6 * ((Math.sin(time * star.speed + star.phase) + 1) / 2);
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;

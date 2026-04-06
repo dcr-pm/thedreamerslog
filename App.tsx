@@ -349,67 +349,67 @@ const App: React.FC = () => {
                         exit={{ opacity: 0, y: -20 }}
                         className="flex flex-col items-center justify-center text-center p-8 h-screen w-full max-w-4xl mx-auto"
                     >
-                        <div className="mb-12 relative">
-                            <motion.div 
-                                animate={{ 
+                        <div className="mb-8 relative">
+                            <motion.div
+                                animate={{
                                     scale: [1, 1.1, 1],
                                     rotate: [0, 5, -5, 0]
                                 }}
-                                transition={{ 
-                                    duration: 10, 
+                                transition={{
+                                    duration: 10,
                                     repeat: Infinity,
                                     ease: "easeInOut"
                                 }}
                                 className="relative z-10"
                             >
-                                <img src="/assets/logo.svg" alt="The Dreamer's Log Logo" className="w-32 h-32 md:w-48 md:h-48 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]" />
+                                <img src="/assets/logo.svg" alt="The Dreamer's Log Logo" className="w-24 h-24 md:w-36 md:h-36 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]" />
                             </motion.div>
                             <div className="absolute inset-0 bg-dreamy-purple/20 blur-[100px] -z-10 rounded-full"></div>
                         </div>
-                        
-                        <h1 className="text-[clamp(2.5rem,8vw,6rem)] font-bold text-white mb-6 font-display tracking-tight leading-none whitespace-nowrap">
+
+                        <h1 className="text-[clamp(2rem,6.5vw,4.5rem)] font-bold text-white mb-4 font-display tracking-tight leading-none whitespace-nowrap">
                             The Dreamer's <span className="text-transparent bg-clip-text bg-gradient-to-r from-dreamy-purple to-dreamy-indigo">Log</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-medium-text mb-8 md:mb-12 max-w-2xl leading-relaxed font-light min-h-[5em] md:min-h-[3.5em]">
+                        <p className="text-base md:text-lg text-medium-text mb-6 md:mb-10 max-w-xl leading-relaxed font-light min-h-[4em] md:min-h-[3em]">
                             <Typewriter text="Step into the loom of your subconscious. Record your dreams and watch them materialize into art and insight." speed={60} delay={800} />
                         </p>
-                        
+
                         {error && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl mb-8 max-w-md"
+                                className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-2xl mb-6 max-w-sm text-sm"
                             >
                                 {error}
                             </motion.div>
                         )}
-                        
-                        <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md">
+
+                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                             <button
                                 onClick={handleStartRecording}
-                                className="flex-1 group relative bg-white text-dark-bg font-bold py-5 px-8 rounded-full transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 shadow-2xl shadow-white/10"
+                                className="flex-1 group relative bg-white text-dark-bg font-bold py-4 px-6 rounded-full transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shadow-2xl shadow-white/10 text-sm"
                             >
-                                <Mic className="group-hover:animate-pulse" />
+                                <Mic size={18} className="group-hover:animate-pulse" />
                                 Speak Dream
                             </button>
                             <button
                                 onClick={() => setAppState(AppState.TYPING)}
-                                className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-5 px-8 rounded-full border border-white/10 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 backdrop-blur-sm"
+                                className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-4 px-6 rounded-full border border-white/10 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 backdrop-blur-sm text-sm"
                             >
-                                <PenLine />
+                                <PenLine size={18} />
                                 Write Dream
                             </button>
                         </div>
-                        
-                        <div className="mt-16 flex items-center gap-8 text-medium-text/50">
-                            <div className="flex items-center gap-2">
-                                <Moon size={16} />
-                                <span className="text-xs uppercase tracking-widest font-semibold">Subconscious</span>
+
+                        <div className="mt-12 flex items-center gap-6 text-medium-text/50">
+                            <div className="flex items-center gap-1.5">
+                                <Moon size={14} />
+                                <span className="text-[10px] uppercase tracking-widest font-semibold">Subconscious</span>
                             </div>
                             <div className="w-1 h-1 bg-white/20 rounded-full"></div>
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={16} />
-                                <span className="text-xs uppercase tracking-widest font-semibold">AI Vision</span>
+                            <div className="flex items-center gap-1.5">
+                                <Sparkles size={14} />
+                                <span className="text-[10px] uppercase tracking-widest font-semibold">AI Vision</span>
                             </div>
                         </div>
                     </motion.div>
