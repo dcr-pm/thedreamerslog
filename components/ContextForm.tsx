@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import type { DreamContext } from '../types';
+import { markdownToSafeHtml } from '../utils/sanitize';
 import { Sparkles, Heart, Sun, User, PlusCircle, ArrowRight } from 'lucide-react';
 
 interface ContextFormProps {
@@ -49,13 +50,11 @@ const ContextForm: React.FC<ContextFormProps> = ({ interpretation, onSubmit }) =
                         <Sparkles className="text-dreamy-purple" size={24} />
                         Initial Insight
                     </h2>
-                    <div 
-                        className="prose prose-invert prose-p:text-medium-text prose-p:leading-relaxed prose-strong:text-dreamy-purple prose-strong:font-bold max-h-[400px] overflow-y-auto pr-4 custom-scrollbar" 
-                        dangerouslySetInnerHTML={{ 
-                            __html: interpretation
-                                .replace(/\n/g, '<br/>')
-                                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-dreamy-purple block mt-4 mb-1 uppercase tracking-widest text-[10px]">$1</strong>') 
-                        }} 
+                    <div
+                        className="prose prose-invert prose-p:text-medium-text prose-p:leading-relaxed prose-strong:text-dreamy-purple prose-strong:font-bold max-h-[400px] overflow-y-auto pr-4 custom-scrollbar"
+                        dangerouslySetInnerHTML={{
+                            __html: markdownToSafeHtml(interpretation)
+                        }}
                     />
                 </motion.div>
                 

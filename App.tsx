@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppState, DreamAnalysisData, DreamContext } from './types';
@@ -20,6 +20,9 @@ const App: React.FC = () => {
     const [dreamContext, setDreamContext] = useState<DreamContext | null>(null);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    const transcriptionRef = useRef(transcription);
+    useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
 
     const sessionPromiseRef = useRef<Promise<any> | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -140,13 +143,14 @@ const App: React.FC = () => {
             return;
         }
 
-        if (transcription.trim().length < 10) {
+        const currentTranscription = transcriptionRef.current;
+        if (currentTranscription.trim().length < 10) {
             setError("Dream recording is too short. Please try again and describe your dream in more detail.");
             setAppState(AppState.IDLE);
             return;
         }
 
-        startAnalysis(transcription);
+        startAnalysis(currentTranscription);
     };
 
     const handleTypedSubmit = () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
 interface RecorderProps {
@@ -71,8 +71,5 @@ const Recorder: React.FC<RecorderProps> = ({ isRecording, transcription, onStopR
     </div>
   );
 };
-
-// Helper for AnimatePresence in the same file
-import { AnimatePresence } from 'motion/react';
 
 export default Recorder;

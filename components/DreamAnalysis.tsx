@@ -3,20 +3,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { Chat } from '@google/genai';
 import { createDreamChat } from '../services/geminiService';
 import type { ChatMessage, DreamAnalysisData, DreamContext } from '../types';
-import { 
-  Download, 
-  Copy, 
-  Check, 
-  Send, 
-  Share2, 
-  Facebook, 
-  Instagram, 
-  Twitter, 
-  RefreshCw, 
-  Sparkles, 
-  MessageCircle, 
+import { markdownToSafeHtml, escapeHtml } from '../utils/sanitize';
+import {
+  Download,
+  Copy,
+  Check,
+  Send,
+  Share2,
+  RefreshCw,
+  Sparkles,
+  MessageCircle,
   Info,
-  ExternalLink
 } from 'lucide-react';
 
 interface DreamAnalysisProps {
@@ -35,7 +32,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
       className={`flex items-end ${isModel ? 'justify-start' : 'justify-end'} mb-6`}
     >
       <div className={`max-w-[85%] p-5 rounded-2xl ${isModel ? 'bg-white/5 border border-white/10 text-light-text' : 'bg-gradient-to-br from-dreamy-purple to-dreamy-indigo text-white shadow-lg shadow-purple-500/20'}`}>
-        <p className="text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: message.text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>') }}/>
+        <p className="text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: escapeHtml(message.text).replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>') }}/>
       </div>
     </motion.div>
   );
@@ -178,9 +175,8 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
                                     Share Vision
                                 </span>
                                 <div className="flex gap-4">
-                                    <a href="#" className="text-medium-text hover:text-white transition-colors"><Instagram size={20} /></a>
-                                    <a href="#" className="text-medium-text hover:text-white transition-colors"><Twitter size={20} /></a>
-                                    <a href="#" className="text-medium-text hover:text-white transition-colors"><Facebook size={20} /></a>
+                                    <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out my dream analysis on The Dreamer\'s Log!')}&url=${encodeURIComponent('https://www.thedreamerslog.com')}`} target="_blank" rel="noopener noreferrer" className="text-medium-text hover:text-white transition-colors"><Share2 size={20} /></a>
+                                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://www.thedreamerslog.com')}`} target="_blank" rel="noopener noreferrer" className="text-medium-text hover:text-white transition-colors"><Share2 size={20} /></a>
                                 </div>
                             </div>
                             <div className="h-px flex-grow bg-white/10 hidden md:block mx-8"></div>
@@ -212,13 +208,11 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
                         </button>
                     </div>
                     <div className="flex-grow overflow-y-auto pr-4 custom-scrollbar">
-                        <div 
+                        <div
                             className="prose prose-invert prose-p:text-medium-text prose-p:leading-relaxed prose-strong:text-dreamy-purple prose-strong:font-bold prose-headings:text-white"
-                            dangerouslySetInnerHTML={{ 
-                                __html: analysis.interpretation
-                                    .replace(/\n/g, '<br/>')
-                                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-dreamy-purple block mt-6 mb-2 uppercase tracking-widest text-xs">$1</strong>') 
-                            }} 
+                            dangerouslySetInnerHTML={{
+                                __html: markdownToSafeHtml(analysis.interpretation, 'text-dreamy-purple block mt-6 mb-2 uppercase tracking-widest text-xs')
+                            }}
                         />
                     </div>
                     <div className="mt-8 pt-8 border-t border-white/10">
@@ -297,7 +291,7 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
                     type="text"
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Ask about a symbol, feeling, or theme..."
                     className="w-full bg-white/5 text-light-text placeholder-medium-text/50 p-5 pr-16 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-dreamy-purple/50 focus:border-dreamy-purple transition-all text-lg"
                     disabled={isChatting}
