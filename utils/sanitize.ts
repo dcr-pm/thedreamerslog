@@ -13,6 +13,9 @@ export function markdownToSafeHtml(text: string, headingClass?: string): string 
   const escaped = escapeHtml(text);
   const defaultClass = 'text-dreamy-purple block mt-4 mb-1 uppercase tracking-widest text-[10px]';
   return escaped
-    .replace(/\n/g, '<br/>')
-    .replace(/\*\*(.*?)\*\*/g, `<strong class="${headingClass || defaultClass}">$1</strong>`);
+    // Convert **bold** to <strong> (allow content to span newlines)
+    .replace(/\*\*([\s\S]*?)\*\*/g, `<strong class="${headingClass || defaultClass}">$1</strong>`)
+    // Remove any remaining stray * characters used as markdown
+    .replace(/\*/g, '')
+    .replace(/\n/g, '<br/>');
 }
