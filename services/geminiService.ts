@@ -54,8 +54,8 @@ export const analyzeDream = async (dreamText: string, tags?: DreamTags): Promise
   if (tags) {
     const parts: string[] = [];
     if (tags.gender && tags.gender !== 'Prefer not to say') parts.push(`The dreamer identifies as ${tags.gender}.`);
-    if (tags.mood) parts.push(`The overall mood of the dream was ${tags.mood}.`);
-    if (tags.theme) parts.push(`The dream involved themes of ${tags.theme}.`);
+    if (tags.mood.length > 0) parts.push(`The mood(s) of the dream: ${tags.mood.join(', ')}.`);
+    if (tags.theme.length > 0) parts.push(`The dream involved themes of: ${tags.theme.join(', ')}.`);
     if (tags.intensity) parts.push(`The dream intensity was ${tags.intensity}.`);
     if (tags.lucidity) parts.push(`Lucidity level: ${tags.lucidity}.`);
     if (tags.recurrence) parts.push(`Recurrence: ${tags.recurrence}.`);
