@@ -8,6 +8,8 @@ import Recorder from './components/Recorder';
 import DreamAnalysis from './components/DreamAnalysis';
 import ContextForm from './components/ContextForm';
 import LoadingSpinner from './components/LoadingSpinner';
+import DreamyBackground from './components/DreamyBackground';
+import Typewriter from './components/Typewriter';
 import { Moon, Sparkles, PenLine, Mic, ArrowLeft } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -363,11 +365,11 @@ const App: React.FC = () => {
                             <div className="absolute inset-0 bg-dreamy-purple/20 blur-[100px] -z-10 rounded-full"></div>
                         </div>
                         
-                        <h1 className="text-6xl md:text-8xl font-bold text-white mb-6 font-display tracking-tight leading-none">
+                        <h1 className="text-[clamp(2.5rem,8vw,6rem)] font-bold text-white mb-6 font-display tracking-tight leading-none whitespace-nowrap">
                             The Dreamer's <span className="text-transparent bg-clip-text bg-gradient-to-r from-dreamy-purple to-dreamy-indigo">Log</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-medium-text mb-12 max-w-2xl leading-relaxed font-light">
-                            Step into the loom of your subconscious. Record your dreams and watch them materialize into art and insight.
+                        <p className="text-xl md:text-2xl text-medium-text mb-12 max-w-2xl leading-relaxed font-light h-[3.5em]">
+                            <Typewriter text="Step into the loom of your subconscious. Record your dreams and watch them materialize into art and insight." speed={30} delay={600} />
                         </p>
                         
                         {error && (
@@ -419,11 +421,7 @@ const App: React.FC = () => {
                 {renderContent()}
             </AnimatePresence>
             
-            {/* Ambient Background Elements */}
-            <div className="fixed inset-0 pointer-events-none -z-10">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-dreamy-purple/10 blur-[120px] rounded-full animate-pulse"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-dreamy-indigo/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-            </div>
+            <DreamyBackground />
         </div>
     );
 };
