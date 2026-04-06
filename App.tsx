@@ -347,8 +347,8 @@ const App: React.FC = () => {
                         <h1 className="text-[clamp(2.5rem,8vw,6rem)] font-bold text-white mb-6 font-display tracking-tight leading-none whitespace-nowrap">
                             The Dreamer's <span className="text-transparent bg-clip-text bg-gradient-to-r from-dreamy-purple to-dreamy-indigo">Log</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-medium-text mb-12 max-w-2xl leading-relaxed font-light h-[3.5em]">
-                            <Typewriter text="Step into the loom of your subconscious. Record your dreams and watch them materialize into art and insight." speed={30} delay={600} />
+                        <p className="text-xl md:text-2xl text-medium-text mb-8 md:mb-12 max-w-2xl leading-relaxed font-light min-h-[5em] md:min-h-[3.5em]">
+                            <Typewriter text="Step into the loom of your subconscious. Record your dreams and watch them materialize into art and insight." speed={60} delay={800} />
                         </p>
                         
                         {error && (
