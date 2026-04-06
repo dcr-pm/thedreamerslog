@@ -1,11 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AppState, DreamAnalysisData, DreamContext } from './types';
+import { AppState, DreamAnalysisData, DreamContext, DreamTags, EMPTY_DREAM_TAGS } from './types';
 import * as geminiService from './services/geminiService';
 import Recorder from './components/Recorder';
 import DreamAnalysis from './components/DreamAnalysis';
 import ContextForm from './components/ContextForm';
 import LoadingSpinner from './components/LoadingSpinner';
+import DreamTagPicker from './components/DreamTagPicker';
 import DreamyBackground from './components/DreamyBackground';
 import Typewriter from './components/Typewriter';
 import { Moon, Sparkles, PenLine, Mic, ArrowLeft } from 'lucide-react';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
     const [analysisResult, setAnalysisResult] = useState<DreamAnalysisData | null>(null);
     const [interpretation, setInterpretation] = useState<string | null>(null);
     const [dreamContext, setDreamContext] = useState<DreamContext | null>(null);
+    const [dreamTags, setDreamTags] = useState<DreamTags>(EMPTY_DREAM_TAGS);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
 
@@ -180,7 +182,7 @@ const App: React.FC = () => {
 
         try {
             setLoadingMessage('Weaving the threads of your subconscious...');
-            const interpretationResult = await geminiService.analyzeDream(dreamText);
+            const interpretationResult = await geminiService.analyzeDream(dreamText, dreamTags);
             setInterpretation(interpretationResult);
             setAppState(AppState.AWAITING_CONTEXT);
         } catch (err) {
@@ -219,6 +221,7 @@ const App: React.FC = () => {
         setAnalysisResult(null);
         setInterpretation(null);
         setDreamContext(null);
+        setDreamTags(EMPTY_DREAM_TAGS);
         setError(null);
     };
 
@@ -233,7 +236,7 @@ const App: React.FC = () => {
                         exit={{ opacity: 0, scale: 1.1 }}
                         className="w-full"
                     >
-                        <Recorder isRecording={true} transcription={transcription} audioLevel={audioLevel} onStopRecording={() => handleStopRecording(false)} />
+                        <Recorder isRecording={true} transcription={transcription} audioLevel={audioLevel} dreamTags={dreamTags} onTagsChange={setDreamTags} onStopRecording={() => handleStopRecording(false)} />
                     </motion.div>
                 );
             case AppState.TYPING:
@@ -254,8 +257,11 @@ const App: React.FC = () => {
                                 value={typedDream}
                                 onChange={(e) => setTypedDream(e.target.value)}
                                 placeholder="I was floating above a city made of bioluminescent coral..."
-                                className="w-full h-64 bg-white/5 text-light-text p-6 rounded-2xl border border-white/10 focus:border-dreamy-purple focus:ring-2 focus:ring-dreamy-purple/20 outline-none transition-all text-lg leading-relaxed"
+                                className="w-full h-48 bg-white/5 text-light-text p-6 rounded-2xl border border-white/10 focus:border-dreamy-purple focus:ring-2 focus:ring-dreamy-purple/20 outline-none transition-all text-lg leading-relaxed"
                             />
+                            <div className="mt-6 pt-6 border-t border-white/10">
+                                <DreamTagPicker tags={dreamTags} onChange={setDreamTags} />
+                            </div>
                             {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
                             <div className="flex gap-4 mt-8">
                                 <button

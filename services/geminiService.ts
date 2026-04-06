@@ -1,5 +1,5 @@
 import { GoogleGenAI, Modality, Chat } from "@google/genai";
-import { DreamContext } from "../types";
+import { DreamContext, DreamTags } from "../types";
 
 const getGenAI = () => {
   const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
@@ -47,10 +47,25 @@ ${context.emotion || context.wakingFeeling || context.conclusion || context.pers
   throw new Error("Image generation failed");
 };
 
-export const analyzeDream = async (dreamText: string): Promise<string> => {
+export const analyzeDream = async (dreamText: string, tags?: DreamTags): Promise<string> => {
   const ai = getGenAI();
-  const prompt = `Analyze the following dream from a psychological perspective using Jungian archetypes and common dream symbols.
 
+  let tagsContext = '';
+  if (tags) {
+    const parts: string[] = [];
+    if (tags.gender && tags.gender !== 'Prefer not to say') parts.push(`The dreamer identifies as ${tags.gender}.`);
+    if (tags.mood) parts.push(`The overall mood of the dream was ${tags.mood}.`);
+    if (tags.theme) parts.push(`The dream involved themes of ${tags.theme}.`);
+    if (tags.intensity) parts.push(`The dream intensity was ${tags.intensity}.`);
+    if (tags.lucidity) parts.push(`Lucidity level: ${tags.lucidity}.`);
+    if (tags.recurrence) parts.push(`Recurrence: ${tags.recurrence}.`);
+    if (parts.length > 0) {
+      tagsContext = `\nDreamer context: ${parts.join(' ')}\n`;
+    }
+  }
+
+  const prompt = `Analyze the following dream from a psychological perspective using Jungian archetypes and common dream symbols.
+${tagsContext}
 FORMAT RULES (follow exactly):
 - Use exactly three section headings, each on its own line: **Core Emotional Theme**, **Key Symbols & Archetypes**, **Potential Interpretation**
 - Only these three headings should use **bold** markers. Do NOT bold any other text.

@@ -19,6 +19,24 @@ export interface ChatMessage {
   text: string;
 }
 
+export interface DreamTags {
+  gender: string | null;
+  mood: string | null;
+  theme: string | null;
+  intensity: string | null;
+  lucidity: string | null;
+  recurrence: string | null;
+}
+
+export const EMPTY_DREAM_TAGS: DreamTags = {
+  gender: null,
+  mood: null,
+  theme: null,
+  intensity: null,
+  lucidity: null,
+  recurrence: null,
+};
+
 export interface DreamContext {
   emotion: string;
   wakingFeeling: string;

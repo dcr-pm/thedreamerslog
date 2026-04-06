@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Square, Loader2 } from 'lucide-react';
+import { Mic, Square, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import type { DreamTags } from '../types';
+import DreamTagPicker from './DreamTagPicker';
 
 interface RecorderProps {
   isRecording: boolean;
   transcription: string;
   audioLevel: number;
+  dreamTags: DreamTags;
+  onTagsChange: (tags: DreamTags) => void;
   onStopRecording: () => void;
 }
 
@@ -15,8 +19,9 @@ const formatTime = (seconds: number): string => {
   return `${m}:${s}`;
 };
 
-const Recorder: React.FC<RecorderProps> = ({ isRecording, transcription, audioLevel, onStopRecording }) => {
+const Recorder: React.FC<RecorderProps> = ({ isRecording, transcription, audioLevel, dreamTags, onTagsChange, onStopRecording }) => {
   const [elapsed, setElapsed] = useState(0);
+  const [showTags, setShowTags] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,6 +109,31 @@ const Recorder: React.FC<RecorderProps> = ({ isRecording, transcription, audioLe
           )}
           <span ref={transcriptEndRef} />
         </p>
+      </div>
+
+      {/* Collapsible tags */}
+      <div className="w-full mb-8">
+        <button
+          onClick={() => setShowTags(!showTags)}
+          className="flex items-center gap-2 text-sm text-medium-text hover:text-light-text transition-colors mx-auto"
+        >
+          {showTags ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {showTags ? 'Hide context tags' : 'Add context tags (optional)'}
+        </button>
+        <AnimatePresence>
+          {showTags && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="glass-card mt-4 !p-5">
+                <DreamTagPicker tags={dreamTags} onChange={onTagsChange} compact />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <button
