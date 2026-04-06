@@ -200,7 +200,7 @@ const App: React.FC = () => {
         
         try {
             setLoadingMessage("Crafting your dream's tapestry...");
-            const imageUrl = await geminiService.generateDreamImage(finalDreamText, context);
+            const imageUrl = await geminiService.generateDreamImage(finalDreamText, context, dreamTags);
 
             setAnalysisResult({ imageUrl, interpretation: interpretation! });
             setAppState(AppState.COMPLETE);

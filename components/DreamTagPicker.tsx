@@ -46,6 +46,12 @@ const TAG_GROUPS: TagGroup[] = [
     options: ['Male', 'Female', 'Non-binary', 'Prefer not to say'],
     multi: false,
   },
+  {
+    key: 'ageRange',
+    label: 'Age range',
+    options: ['Toddler (0-3)', 'Young child (4-7)', 'Child (8-12)', 'Young teen (13-15)', 'Older teen (16-19)', 'Young adult (20-29)', 'Adult (30-44)', 'Middle-aged (45-59)', 'Senior (60-74)', 'Elder (75+)'],
+    multi: false,
+  },
 ];
 
 interface DreamTagPickerProps {

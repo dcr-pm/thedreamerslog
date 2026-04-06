@@ -21,6 +21,7 @@ export interface ChatMessage {
 
 export interface DreamTags {
   gender: string | null;
+  ageRange: string | null;
   mood: string[];
   theme: string[];
   intensity: string | null;
@@ -30,6 +31,7 @@ export interface DreamTags {
 
 export const EMPTY_DREAM_TAGS: DreamTags = {
   gender: null,
+  ageRange: null,
   mood: [],
   theme: [],
   intensity: null,

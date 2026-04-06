@@ -9,18 +9,34 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export const generateDreamImage = async (dreamText: string, context: DreamContext): Promise<string> => {
+export const generateDreamImage = async (dreamText: string, context: DreamContext, tags?: DreamTags): Promise<string> => {
   const ai = getGenAI();
-  
+
   let contextPrompt = 'The dreamer provided this additional context:';
   if (context.emotion) contextPrompt += `\n- Primary emotion felt during the dream: ${context.emotion}`;
   if (context.wakingFeeling) contextPrompt += `\n- How they felt upon waking: ${context.wakingFeeling}`;
   if (context.conclusion) contextPrompt += `\n- The dream felt like it ${context.conclusion}.`;
   if (context.personDescription) contextPrompt += `\n- Description of a significant person in the dream: ${context.personDescription}. Please incorporate this description into the visual representation of any people present.`;
   if (context.additionalInfo) contextPrompt += `\n- Other details: ${context.additionalInfo}`;
-    
+
+  // Build dreamer identity instructions for accurate representation
+  let dreamerIdentity = '';
+  if (tags) {
+    const parts: string[] = [];
+    if (tags.gender && tags.gender !== 'Prefer not to say') {
+      parts.push(`The dreamer is ${tags.gender.toLowerCase()}`);
+    }
+    if (tags.ageRange) {
+      parts.push(`age range: ${tags.ageRange}`);
+    }
+    if (parts.length > 0) {
+      dreamerIdentity = `\nIMPORTANT - Dreamer identity: ${parts.join(', ')}. Any depiction of the dreamer or main character in the sketch MUST match this identity. Do NOT depict them as a different gender or age.`;
+    }
+  }
+
   const prompt = `Create a pencil sketch of this dream, with some scribbles. The style should be loose, like a drawing in a personal journal, leaving it open to interpretation. It can be a single scene or a collection of symbolic components based on the dream.
-  
+${dreamerIdentity}
+
 Dream: "${dreamText}"
 
 ${context.emotion || context.wakingFeeling || context.conclusion || context.personDescription || context.additionalInfo ? contextPrompt : ''}
@@ -54,6 +70,7 @@ export const analyzeDream = async (dreamText: string, tags?: DreamTags): Promise
   if (tags) {
     const parts: string[] = [];
     if (tags.gender && tags.gender !== 'Prefer not to say') parts.push(`The dreamer identifies as ${tags.gender}.`);
+    if (tags.ageRange) parts.push(`The dreamer's age range: ${tags.ageRange}.`);
     if (tags.mood.length > 0) parts.push(`The mood(s) of the dream: ${tags.mood.join(', ')}.`);
     if (tags.theme.length > 0) parts.push(`The dream involved themes of: ${tags.theme.join(', ')}.`);
     if (tags.intensity) parts.push(`The dream intensity was ${tags.intensity}.`);
