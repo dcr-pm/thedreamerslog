@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { Chat } from '@google/genai';
 import { createDreamChat } from '../services/geminiService';
 import type { ChatMessage, DreamAnalysisData, DreamContext } from '../types';
-import { markdownToSafeHtml, escapeHtml } from '../utils/sanitize';
+import { escapeHtml } from '../utils/sanitize';
+import InterpretationCards from './InterpretationCards';
 import {
   Download,
   Copy,
@@ -251,42 +252,27 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
             </div>
         </motion.div>
 
-        {/* Interpretation */}
+        {/* Interpretation Cards */}
         <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             className="mb-12 max-w-4xl mx-auto"
         >
-            <div className="glass-card">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-bold text-white font-display flex items-center gap-3">
-                        <Info className="text-dreamy-indigo" size={24} />
-                        Dream Interpretation
-                    </h2>
-                    <button
-                        onClick={handleCopyAnalysis}
-                        className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-light-text transition-colors"
-                        title="Copy Interpretation"
-                    >
-                        {copiedAnalysis ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
-                    </button>
-                </div>
-                <div
-                    className="prose prose-invert prose-p:text-medium-text prose-p:leading-relaxed prose-strong:text-dreamy-purple prose-strong:font-bold prose-headings:text-white max-w-none"
-                    dangerouslySetInnerHTML={{
-                        __html: markdownToSafeHtml(analysis.interpretation, 'text-dreamy-purple block mt-6 mb-2 uppercase tracking-widest text-xs')
-                    }}
-                />
-                <div className="mt-8 pt-8 border-t border-white/10">
-                    <div className="flex items-start gap-4 p-4 rounded-2xl bg-dreamy-purple/5 border border-dreamy-purple/10">
-                        <Sparkles className="text-dreamy-purple flex-shrink-0 mt-1" size={18} />
-                        <p className="text-sm text-medium-text leading-relaxed">
-                            This interpretation is woven from Jungian archetypes and psychological symbols. Use it as a guide for your own reflection.
-                        </p>
-                    </div>
-                </div>
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white font-display flex items-center gap-3">
+                    <Info className="text-dreamy-indigo" size={24} />
+                    Dream Interpretation
+                </h2>
+                <button
+                    onClick={handleCopyAnalysis}
+                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-light-text transition-colors"
+                    title="Copy Interpretation"
+                >
+                    {copiedAnalysis ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
+                </button>
             </div>
+            <InterpretationCards text={analysis.interpretation} />
         </motion.div>
 
         {/* Chat Section */}

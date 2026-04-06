@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import type { DreamContext } from '../types';
-import { markdownToSafeHtml } from '../utils/sanitize';
+import InterpretationCards from './InterpretationCards';
 import { Sparkles, Heart, Sun, User, PlusCircle, ArrowRight } from 'lucide-react';
 
 interface ContextFormProps {
@@ -40,22 +40,17 @@ const ContextForm: React.FC<ContextFormProps> = ({ interpretation, onSubmit }) =
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Left: Interpretation Summary */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="lg:col-span-5 glass-card h-full"
+                    className="lg:col-span-5 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
                 >
                     <h2 className="text-2xl font-bold text-white mb-6 font-display flex items-center gap-3">
                         <Sparkles className="text-dreamy-purple" size={24} />
                         Initial Insight
                     </h2>
-                    <div
-                        className="prose prose-invert prose-p:text-medium-text prose-p:leading-relaxed prose-strong:text-dreamy-purple prose-strong:font-bold max-h-[400px] overflow-y-auto pr-4 custom-scrollbar"
-                        dangerouslySetInnerHTML={{
-                            __html: markdownToSafeHtml(interpretation)
-                        }}
-                    />
+                    <InterpretationCards text={interpretation} />
                 </motion.div>
                 
                 {/* Right: Form */}
