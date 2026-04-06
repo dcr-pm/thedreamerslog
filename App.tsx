@@ -241,15 +241,15 @@ const App: React.FC = () => {
                 );
             case AppState.TYPING:
                 return (
-                    <motion.div 
+                    <motion.div
                         key="typing"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="flex flex-col items-center justify-center p-8 h-full min-h-screen w-full max-w-3xl mx-auto"
+                        className="flex flex-col items-center p-4 md:p-8 py-8 md:py-12 w-full max-w-3xl mx-auto min-h-screen"
                     >
                         <div className="glass-card w-full">
-                            <h2 className="text-4xl font-bold text-light-text mb-6 font-display flex items-center gap-3">
+                            <h2 className="text-2xl md:text-4xl font-bold text-light-text mb-4 md:mb-6 font-display flex items-center gap-3">
                                 <PenLine className="text-dreamy-purple" />
                                 Write Your Dream
                             </h2>
@@ -257,28 +257,29 @@ const App: React.FC = () => {
                                 value={typedDream}
                                 onChange={(e) => setTypedDream(e.target.value)}
                                 placeholder="I was floating above a city made of bioluminescent coral..."
-                                className="w-full h-48 bg-white/5 text-light-text p-6 rounded-2xl border border-white/10 focus:border-dreamy-purple focus:ring-2 focus:ring-dreamy-purple/20 outline-none transition-all text-lg leading-relaxed"
+                                className="w-full h-36 md:h-48 bg-white/5 text-light-text p-4 md:p-6 rounded-2xl border border-white/10 focus:border-dreamy-purple focus:ring-2 focus:ring-dreamy-purple/20 outline-none transition-all text-base md:text-lg leading-relaxed"
                             />
-                            <div className="mt-6 pt-6 border-t border-white/10">
-                                <DreamTagPicker tags={dreamTags} onChange={setDreamTags} />
+                            <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-white/10">
+                                <DreamTagPicker tags={dreamTags} onChange={setDreamTags} compact />
                             </div>
                             {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
-                            <div className="flex gap-4 mt-8">
-                                <button
-                                    onClick={() => setAppState(AppState.IDLE)}
-                                    className="flex-1 bg-white/5 hover:bg-white/10 text-light-text font-bold py-4 px-8 rounded-full transition-all flex items-center justify-center gap-2"
-                                >
-                                    <ArrowLeft size={20} />
-                                    Back
-                                </button>
-                                <button
-                                    onClick={handleTypedSubmit}
-                                    className="flex-[2] bg-gradient-to-r from-dreamy-purple to-dreamy-indigo hover:opacity-90 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-[1.02] shadow-xl shadow-purple-500/20 text-lg flex items-center justify-center gap-2"
-                                >
-                                    <Sparkles size={20} />
-                                    Analyze Dream
-                                </button>
-                            </div>
+                        </div>
+                        {/* Sticky bottom buttons */}
+                        <div className="flex gap-3 md:gap-4 mt-6 w-full sticky bottom-4">
+                            <button
+                                onClick={() => setAppState(AppState.IDLE)}
+                                className="flex-1 bg-white/5 hover:bg-white/10 backdrop-blur-xl text-light-text font-bold py-4 px-4 md:px-8 rounded-full transition-all flex items-center justify-center gap-2 border border-white/10"
+                            >
+                                <ArrowLeft size={18} />
+                                Back
+                            </button>
+                            <button
+                                onClick={handleTypedSubmit}
+                                className="flex-[2] bg-gradient-to-r from-dreamy-purple to-dreamy-indigo hover:opacity-90 text-white font-bold py-4 px-4 md:px-10 rounded-full transition-all transform hover:scale-[1.02] shadow-xl shadow-purple-500/20 text-base md:text-lg flex items-center justify-center gap-2"
+                            >
+                                <Sparkles size={18} />
+                                Analyze Dream
+                            </button>
                         </div>
                     </motion.div>
                 );

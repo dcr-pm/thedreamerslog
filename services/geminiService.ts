@@ -86,11 +86,13 @@ ${tagsContext}
 FORMAT RULES (follow exactly):
 - Use exactly three section headings, each on its own line: **Core Emotional Theme**, **Key Symbols & Archetypes**, **Potential Interpretation**
 - Only these three headings should use **bold** markers. Do NOT bold any other text.
-- Under "Key Symbols & Archetypes", list each symbol as a bullet point starting with "- " followed by the symbol name in plain text, a colon, then the explanation. Example:
-  - The Forest: Represents the unconscious mind. Walking through a forest symbolizes...
-  - The Shadow Figure: Embodies repressed aspects of the self...
-- Write in flowing paragraphs for the other sections. Do not use sub-headings.
-- Keep the total analysis under 300 words.
+- Under "Key Symbols & Archetypes", list each symbol as a bullet point starting with "- " followed by the symbol name in plain text, a colon, then a SHORT one-sentence explanation. Example:
+  - The Forest: Represents the unconscious mind and the unknown.
+  - The Shadow Figure: Embodies repressed aspects of the self.
+- "Core Emotional Theme" should be 1-2 sentences max.
+- "Potential Interpretation" should be a concise paragraph, 3-4 sentences.
+- Write in flowing paragraphs. Do not use sub-headings.
+- Keep the total analysis under 180 words. Be concise and impactful.
 
 Dream: "${dreamText}"`;
 
