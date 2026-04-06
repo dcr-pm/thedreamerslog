@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(ls \"C:/Users/darre/OneDrive/Desktop/dreamweavrai-main/thedreamerslog/.env\"*)",
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(where gh:*)"
+    ]
+  }
+}

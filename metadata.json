@@ -1,0 +1,7 @@
+{
+  "name": "The Dreamer's Log",
+  "description": "A personal sanctuary for your subconscious. Record, visualize, and analyze your dreams to uncover the hidden patterns of your mind.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
