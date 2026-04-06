@@ -49,15 +49,16 @@ ${context.emotion || context.wakingFeeling || context.conclusion || context.pers
 
 export const analyzeDream = async (dreamText: string): Promise<string> => {
   const ai = getGenAI();
-  const prompt = `Analyze the following dream transcription from a psychological perspective, referencing Jungian archetypes and common dream symbols. Structure the analysis into sections with bolded headings (using ** markdown):
-**Core Emotional Theme**
-Identify the dominant feeling or mood of the dream.
-**Key Symbols & Archetypes**
-List the most significant symbols or figures and their potential archetypal meanings (e.g., The Shadow, The Anima/Animus, The Wise Old Man).
-**Potential Interpretation**
-Offer a possible interpretation of what the dream might be communicating to the dreamer's conscious mind about their waking life, challenges, or inner state.
+  const prompt = `Analyze the following dream from a psychological perspective using Jungian archetypes and common dream symbols.
 
-**Important: Keep the total interpretation under 300 words.**
+FORMAT RULES (follow exactly):
+- Use exactly three section headings, each on its own line: **Core Emotional Theme**, **Key Symbols & Archetypes**, **Potential Interpretation**
+- Only these three headings should use **bold** markers. Do NOT bold any other text.
+- Under "Key Symbols & Archetypes", list each symbol as a bullet point starting with "- " followed by the symbol name in plain text, a colon, then the explanation. Example:
+  - The Forest: Represents the unconscious mind. Walking through a forest symbolizes...
+  - The Shadow Figure: Embodies repressed aspects of the self...
+- Write in flowing paragraphs for the other sections. Do not use sub-headings.
+- Keep the total analysis under 300 words.
 
 Dream: "${dreamText}"`;
 
