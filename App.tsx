@@ -27,17 +27,19 @@ const App: React.FC = () => {
     const sessionPromiseRef = useRef<Promise<any> | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioStreamRef = useRef<MediaStream | null>(null);
-    const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
+    const processorNodeRef = useRef<AudioWorkletNode | ScriptProcessorNode | null>(null);
     const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
     const cleanupAudio = useCallback(() => {
         audioStreamRef.current?.getTracks().forEach(track => track.stop());
-        scriptProcessorRef.current?.disconnect();
+        processorNodeRef.current?.disconnect();
         sourceNodeRef.current?.disconnect();
-        audioContextRef.current?.close();
-        
+        if (audioContextRef.current?.state !== 'closed') {
+            audioContextRef.current?.close();
+        }
+
         audioStreamRef.current = null;
-        scriptProcessorRef.current = null;
+        processorNodeRef.current = null;
         sourceNodeRef.current = null;
         audioContextRef.current = null;
     }, []);
@@ -59,7 +61,14 @@ const App: React.FC = () => {
         setAppState(AppState.RECORDING);
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 16000,
+                },
+            });
             audioStreamRef.current = stream;
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
 
@@ -74,20 +83,37 @@ const App: React.FC = () => {
             sessionPromiseRef.current = ai.live.connect({
                 model: 'gemini-3.1-flash-live-preview',
                 callbacks: {
-                    onopen: () => {
-                        sourceNodeRef.current = audioContextRef.current!.createMediaStreamSource(stream);
-                        scriptProcessorRef.current = audioContextRef.current!.createScriptProcessor(4096, 1, 1);
-                        
-                        scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
-                            const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
-                            const pcmBlob = createBlob(inputData);
+                    onopen: async () => {
+                        const ctx = audioContextRef.current!;
+                        sourceNodeRef.current = ctx.createMediaStreamSource(stream);
+
+                        const sendAudioChunk = (float32Data: Float32Array) => {
+                            const pcmBlob = createBlob(float32Data);
                             sessionPromiseRef.current?.then((session) => {
                                 session.sendRealtimeInput({ audio: pcmBlob });
                             });
                         };
 
-                        sourceNodeRef.current.connect(scriptProcessorRef.current);
-                        scriptProcessorRef.current.connect(audioContextRef.current.destination);
+                        // Try AudioWorklet first, fall back to ScriptProcessorNode
+                        try {
+                            await ctx.audioWorklet.addModule('/utils/audioWorkletProcessor.js');
+                            const workletNode = new AudioWorkletNode(ctx, 'pcm-processor');
+                            workletNode.port.onmessage = (event) => {
+                                sendAudioChunk(event.data);
+                            };
+                            sourceNodeRef.current.connect(workletNode);
+                            workletNode.connect(ctx.destination);
+                            processorNodeRef.current = workletNode;
+                        } catch {
+                            // Fallback for browsers without AudioWorklet support
+                            const scriptNode = ctx.createScriptProcessor(2048, 1, 1);
+                            scriptNode.onaudioprocess = (e) => {
+                                sendAudioChunk(e.inputBuffer.getChannelData(0));
+                            };
+                            sourceNodeRef.current.connect(scriptNode);
+                            scriptNode.connect(ctx.destination);
+                            processorNodeRef.current = scriptNode;
+                        }
                     },
                     onmessage: (message: LiveServerMessage) => {
                         // Handle transcription from both possible field names to be robust
@@ -135,7 +161,12 @@ const App: React.FC = () => {
     };
 
     const handleStopRecording = async (isError = false) => {
-        sessionPromiseRef.current?.then(session => session.close());
+        try {
+            const session = await sessionPromiseRef.current;
+            session?.close();
+        } catch {
+            // Session may already be closed or failed to connect
+        }
         cleanupAudio();
         
         if (isError) {
