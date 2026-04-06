@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import type { DreamContext } from '../types';
 import InterpretationCards from './InterpretationCards';
-import { Sparkles, Heart, Sun, User, PlusCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Heart, Sun, User, PlusCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface ContextFormProps {
   interpretation: string;
   onSubmit: (context: DreamContext) => void;
+  onBack?: () => void;
 }
 
-const ContextForm: React.FC<ContextFormProps> = ({ interpretation, onSubmit }) => {
+const ContextForm: React.FC<ContextFormProps> = ({ interpretation, onSubmit, onBack }) => {
     const [context, setContext] = useState<DreamContext>({
         emotion: '',
         wakingFeeling: '',
@@ -145,13 +146,25 @@ const ContextForm: React.FC<ContextFormProps> = ({ interpretation, onSubmit }) =
                         />
                     </div>
 
-                    <button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-dreamy-purple to-dreamy-indigo hover:opacity-90 text-white font-bold py-5 px-8 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-purple-500/20 text-lg flex items-center justify-center gap-3 mt-4"
-                    >
-                        Generate Dream Vision
-                        <ArrowRight size={20} />
-                    </button>
+                    <div className="flex gap-3 mt-4">
+                        {onBack && (
+                            <button
+                                type="button"
+                                onClick={onBack}
+                                className="bg-white/5 hover:bg-white/10 text-light-text font-bold py-5 px-6 rounded-2xl transition-all border border-white/10 flex items-center gap-2"
+                            >
+                                <ArrowLeft size={20} />
+                                Back
+                            </button>
+                        )}
+                        <button
+                            type="submit"
+                            className="flex-1 bg-gradient-to-r from-dreamy-purple to-dreamy-indigo hover:opacity-90 text-white font-bold py-5 px-8 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl shadow-purple-500/20 text-lg flex items-center justify-center gap-3"
+                        >
+                            Generate Dream Vision
+                            <ArrowRight size={20} />
+                        </button>
+                    </div>
                 </motion.form>
             </div>
         </div>

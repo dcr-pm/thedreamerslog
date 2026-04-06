@@ -62,6 +62,9 @@ interface DreamTagPickerProps {
 
 const DreamTagPicker: React.FC<DreamTagPickerProps> = ({ tags, onChange, compact }) => {
   const handleSelect = (group: TagGroup, value: string) => {
+    // Haptic feedback on mobile
+    if (navigator.vibrate) navigator.vibrate(10);
+
     if (group.multi) {
       const current = tags[group.key] as string[];
       const updated = current.includes(value)

@@ -17,6 +17,7 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   const [factIndex, setFactIndex] = useState(0);
+  const [showSlowMessage, setShowSlowMessage] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,6 +26,12 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setShowSlowMessage(false);
+    const timer = setTimeout(() => setShowSlowMessage(true), 15000);
+    return () => clearTimeout(timer);
+  }, [message]);
 
   return (
     <div className="flex flex-col items-center justify-center text-center p-8 h-screen w-full max-w-2xl mx-auto">
@@ -73,14 +80,25 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
             ))}
         </div>
 
-        <motion.h2 
+        <motion.h2
             key={message}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white mb-8 font-display tracking-wide"
+            className="text-3xl font-bold text-white mb-4 font-display tracking-wide"
         >
             {message}
         </motion.h2>
+        <AnimatePresence>
+            {showSlowMessage && (
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-sm text-medium-text/60 mb-8"
+                >
+                    Taking a bit longer than usual — hang tight...
+                </motion.p>
+            )}
+        </AnimatePresence>
 
         <div className="glass-card w-full p-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-dreamy-purple/30 to-transparent"></div>

@@ -115,6 +115,7 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
   const [copiedAnalysis, setCopiedAnalysis] = useState(false);
   const chatRef = useRef<Chat | null>(null);
@@ -311,82 +312,95 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
         </motion.div>
 
         {/* Chat Section */}
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="glass-card mb-12"
+            className="mb-12 max-w-4xl mx-auto"
         >
-            <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-white font-display flex items-center gap-3">
-                        <MessageCircle className="text-dreamy-purple" size={24} />
-                        Explore Further
-                    </h2>
-                    <p className="text-sm text-medium-text mt-1">Ask the AI guide about specific symbols or feelings.</p>
-                </div>
-                <div className="hidden sm:flex items-center gap-2 text-xs text-medium-text font-mono">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    AI EXPERT ONLINE
-                </div>
-            </div>
-
-            <div 
-                ref={chatContainerRef} 
-                className="h-[400px] overflow-y-auto mb-8 pr-4 custom-scrollbar flex flex-col"
-            >
-                {chatHistory.length === 0 && (
-                    <div className="flex-grow flex flex-col items-center justify-center text-center p-12">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                            <MessageCircle className="text-medium-text/30" size={32} />
-                        </div>
-                        <p className="text-medium-text italic max-w-xs">
-                            "What does the recurring ocean signify?" or "Why was the shadow following me?"
-                        </p>
-                    </div>
-                )}
-                {chatHistory.map((msg, index) => <ChatBubble key={index} message={msg} />)}
-                {isChatting && (
-                    <div className="flex justify-start mb-6">
-                        <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-light-text flex items-center gap-2">
-                            <motion.span 
-                                animate={{ opacity: [0.3, 1, 0.3] }} 
-                                transition={{ duration: 1.5, repeat: Infinity }}
-                                className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
-                            />
-                            <motion.span 
-                                animate={{ opacity: [0.3, 1, 0.3] }} 
-                                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
-                                className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
-                            />
-                            <motion.span 
-                                animate={{ opacity: [0.3, 1, 0.3] }} 
-                                transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
-                                className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
-                            />
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div className="relative">
-                <input
-                    type="text"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Ask about a symbol, feeling, or theme..."
-                    className="w-full bg-white/5 text-light-text placeholder-medium-text/50 p-5 pr-16 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-dreamy-purple/50 focus:border-dreamy-purple transition-all text-lg"
-                    disabled={isChatting}
-                />
-                <button 
-                    onClick={handleSendMessage} 
-                    disabled={isChatting || !userInput.trim()} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-dreamy-purple text-white rounded-xl hover:bg-dreamy-indigo disabled:bg-white/5 disabled:text-medium-text transition-all transform hover:scale-105"
+            {!chatOpen ? (
+                <button
+                    onClick={() => setChatOpen(true)}
+                    className="w-full glass-card flex items-center justify-center gap-3 py-6 hover:bg-white/10 transition-all group"
                 >
-                    <Send size={20} />
+                    <MessageCircle className="text-dreamy-purple group-hover:scale-110 transition-transform" size={24} />
+                    <span className="text-lg font-semibold text-white font-display">Have questions about your dream?</span>
+                    <span className="text-sm text-medium-text ml-2">Ask the AI guide</span>
                 </button>
-            </div>
+            ) : (
+                <div className="glass-card">
+                    <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white font-display flex items-center gap-3">
+                                <MessageCircle className="text-dreamy-purple" size={24} />
+                                Explore Further
+                            </h2>
+                            <p className="text-sm text-medium-text mt-1">Ask the AI guide about specific symbols or feelings.</p>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2 text-xs text-medium-text font-mono">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            AI EXPERT ONLINE
+                        </div>
+                    </div>
+
+                    <div
+                        ref={chatContainerRef}
+                        className="h-[400px] overflow-y-auto mb-8 pr-4 custom-scrollbar flex flex-col"
+                    >
+                        {chatHistory.length === 0 && (
+                            <div className="flex-grow flex flex-col items-center justify-center text-center p-12">
+                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                                    <MessageCircle className="text-medium-text/30" size={32} />
+                                </div>
+                                <p className="text-medium-text italic max-w-xs">
+                                    "What does the recurring ocean signify?" or "Why was the shadow following me?"
+                                </p>
+                            </div>
+                        )}
+                        {chatHistory.map((msg, index) => <ChatBubble key={index} message={msg} />)}
+                        {isChatting && (
+                            <div className="flex justify-start mb-6">
+                                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-light-text flex items-center gap-2">
+                                    <motion.span
+                                        animate={{ opacity: [0.3, 1, 0.3] }}
+                                        transition={{ duration: 1.5, repeat: Infinity }}
+                                        className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
+                                    />
+                                    <motion.span
+                                        animate={{ opacity: [0.3, 1, 0.3] }}
+                                        transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                                        className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
+                                    />
+                                    <motion.span
+                                        animate={{ opacity: [0.3, 1, 0.3] }}
+                                        transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                                        className="w-1.5 h-1.5 bg-dreamy-purple rounded-full"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                            placeholder="Ask about a symbol, feeling, or theme..."
+                            className="w-full bg-white/5 text-light-text placeholder-medium-text/50 p-5 pr-16 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-dreamy-purple/50 focus:border-dreamy-purple transition-all text-lg"
+                            disabled={isChatting}
+                        />
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={isChatting || !userInput.trim()}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-dreamy-purple text-white rounded-xl hover:bg-dreamy-indigo disabled:bg-white/5 disabled:text-medium-text transition-all transform hover:scale-105"
+                        >
+                            <Send size={20} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </motion.div>
 
         {/* Reset Button */}

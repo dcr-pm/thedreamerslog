@@ -9,7 +9,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import DreamTagPicker from './components/DreamTagPicker';
 import DreamyBackground from './components/DreamyBackground';
 import Typewriter from './components/Typewriter';
-import { Moon, Sparkles, PenLine, Mic, ArrowLeft } from 'lucide-react';
+import { Moon, Sparkles, PenLine, Mic, ArrowLeft, AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
     const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -27,6 +27,15 @@ const App: React.FC = () => {
 
     const transcriptionRef = useRef(transcription);
     useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
+
+    // Warn before leaving if work is in progress
+    useEffect(() => {
+        const hasWork = appState !== AppState.IDLE && appState !== AppState.COMPLETE;
+        if (!hasWork) return;
+        const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+        window.addEventListener('beforeunload', handler);
+        return () => window.removeEventListener('beforeunload', handler);
+    }, [appState]);
 
     const recognitionRef = useRef<any>(null);
     const audioStreamRef = useRef<MediaStream | null>(null);
@@ -197,7 +206,7 @@ const App: React.FC = () => {
     const handleContextSubmit = async (context: DreamContext) => {
         setDreamContext(context);
         setAppState(AppState.ANALYZING_VISUAL);
-        
+
         try {
             setLoadingMessage("Crafting your dream's tapestry...");
             const imageUrl = await geminiService.generateDreamImage(finalDreamText, context, dreamTags);
@@ -206,8 +215,8 @@ const App: React.FC = () => {
             setAppState(AppState.COMPLETE);
         } catch (err) {
             console.error('Image generation error:', err);
-            setError('There was an issue generating the dream image. Please try again.');
-            setAppState(AppState.IDLE);
+            setError('Image generation failed. Your interpretation is saved — try generating the vision again.');
+            setAppState(AppState.AWAITING_CONTEXT);
         } finally {
             setLoadingMessage('');
         }
@@ -256,9 +265,16 @@ const App: React.FC = () => {
                             <textarea
                                 value={typedDream}
                                 onChange={(e) => setTypedDream(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleTypedSubmit(); }}
                                 placeholder="I was floating above a city made of bioluminescent coral..."
                                 className="w-full h-36 md:h-48 bg-white/5 text-light-text p-4 md:p-6 rounded-2xl border border-white/10 focus:border-dreamy-purple focus:ring-2 focus:ring-dreamy-purple/20 outline-none transition-all text-base md:text-lg leading-relaxed"
                             />
+                            <div className="flex justify-between mt-2 px-1">
+                                <span className={`text-xs ${typedDream.trim().length >= 20 ? 'text-green-400/60' : 'text-medium-text/40'}`}>
+                                    {typedDream.trim().length}/20 min
+                                </span>
+                                <span className="text-xs text-medium-text/40 hidden md:block">Ctrl+Enter to submit</span>
+                            </div>
                             <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-white/10">
                                 <DreamTagPicker tags={dreamTags} onChange={setDreamTags} compact />
                             </div>
@@ -292,7 +308,7 @@ const App: React.FC = () => {
                         exit={{ opacity: 0, x: -50 }}
                         className="w-full"
                     >
-                        <ContextForm onSubmit={handleContextSubmit} interpretation={interpretation || ''} />
+                        <ContextForm onSubmit={handleContextSubmit} interpretation={interpretation || ''} onBack={() => setAppState(AppState.IDLE)} />
                     </motion.div>
                 );
             case AppState.COMPLETE:
