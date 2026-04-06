@@ -1,9 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
 import { AppState, DreamAnalysisData, DreamContext } from './types';
 import * as geminiService from './services/geminiService';
-import { createBlob } from './utils/audio';
 import Recorder from './components/Recorder';
 import DreamAnalysis from './components/DreamAnalysis';
 import ContextForm from './components/ContextForm';
@@ -23,44 +21,67 @@ const App: React.FC = () => {
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
 
+    const [audioLevel, setAudioLevel] = useState(0);
+
     const transcriptionRef = useRef(transcription);
     useEffect(() => { transcriptionRef.current = transcription; }, [transcription]);
 
-    const sessionPromiseRef = useRef<Promise<any> | null>(null);
-    const audioContextRef = useRef<AudioContext | null>(null);
+    const recognitionRef = useRef<any>(null);
     const audioStreamRef = useRef<MediaStream | null>(null);
-    const processorNodeRef = useRef<AudioWorkletNode | ScriptProcessorNode | null>(null);
-    const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const levelIntervalRef = useRef<number | null>(null);
 
     const cleanupAudio = useCallback(() => {
+        if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch {}
+            recognitionRef.current = null;
+        }
         audioStreamRef.current?.getTracks().forEach(track => track.stop());
-        processorNodeRef.current?.disconnect();
-        sourceNodeRef.current?.disconnect();
+        audioStreamRef.current = null;
+        if (levelIntervalRef.current) {
+            clearInterval(levelIntervalRef.current);
+            levelIntervalRef.current = null;
+        }
+        analyserRef.current = null;
         if (audioContextRef.current?.state !== 'closed') {
             audioContextRef.current?.close();
         }
-
-        audioStreamRef.current = null;
-        processorNodeRef.current = null;
-        sourceNodeRef.current = null;
         audioContextRef.current = null;
+        setAudioLevel(0);
     }, []);
+
+    const startAudioLevelMonitor = (stream: MediaStream) => {
+        try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = ctx;
+            const source = ctx.createMediaStreamSource(stream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.7;
+            source.connect(analyser);
+            analyserRef.current = analyser;
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            levelIntervalRef.current = window.setInterval(() => {
+                analyser.getByteFrequencyData(dataArray);
+                const avg = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length;
+                setAudioLevel(avg / 128); // normalize to 0-2 range
+            }, 50);
+        } catch {
+            // Audio level monitoring is optional
+        }
+    };
 
     const handleStartRecording = async () => {
         setError(null);
         setTranscription('');
 
-        // Check if API key is selected (required for some models)
-        if (typeof window !== 'undefined' && (window as any).aistudio) {
-            const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-            if (!hasKey) {
-                await (window as any).aistudio.openSelectKey();
-                // After opening, we assume they selected it or will try again
-                return;
-            }
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            setError('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
+            return;
         }
-
-        setAppState(AppState.RECORDING);
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -68,93 +89,57 @@ const App: React.FC = () => {
                     echoCancellation: true,
                     noiseSuppression: true,
                     autoGainControl: true,
-                    sampleRate: 16000,
                 },
             });
             audioStreamRef.current = stream;
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
 
-            const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-            if (!apiKey) {
-                setError('No API key found. Please select a key or check your environment.');
-                setAppState(AppState.IDLE);
-                return;
-            }
+            setAppState(AppState.RECORDING);
 
-            const ai = new GoogleGenAI({ apiKey });
-            sessionPromiseRef.current = ai.live.connect({
-                model: 'gemini-3.1-flash-live-preview',
-                callbacks: {
-                    onopen: async () => {
-                        const ctx = audioContextRef.current!;
-                        sourceNodeRef.current = ctx.createMediaStreamSource(stream);
+            // Start audio level monitoring for the visualizer
+            startAudioLevelMonitor(stream);
 
-                        const sendAudioChunk = (float32Data: Float32Array) => {
-                            const pcmBlob = createBlob(float32Data);
-                            sessionPromiseRef.current?.then((session) => {
-                                session.sendRealtimeInput({ audio: pcmBlob });
-                            });
-                        };
+            // Use Web Speech API for transcription
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
 
-                        // Try AudioWorklet first, fall back to ScriptProcessorNode
-                        try {
-                            await ctx.audioWorklet.addModule('/utils/audioWorkletProcessor.js');
-                            const workletNode = new AudioWorkletNode(ctx, 'pcm-processor');
-                            workletNode.port.onmessage = (event) => {
-                                sendAudioChunk(event.data);
-                            };
-                            sourceNodeRef.current.connect(workletNode);
-                            workletNode.connect(ctx.destination);
-                            processorNodeRef.current = workletNode;
-                        } catch {
-                            // Fallback for browsers without AudioWorklet support
-                            const scriptNode = ctx.createScriptProcessor(2048, 1, 1);
-                            scriptNode.onaudioprocess = (e) => {
-                                sendAudioChunk(e.inputBuffer.getChannelData(0));
-                            };
-                            sourceNodeRef.current.connect(scriptNode);
-                            scriptNode.connect(ctx.destination);
-                            processorNodeRef.current = scriptNode;
-                        }
-                    },
-                    onmessage: (message: LiveServerMessage) => {
-                        // Handle transcription from both possible field names to be robust
-                        const content = message.serverContent as any;
-                        const transcriptionPart = content?.inputAudioTranscription || content?.inputTranscription;
-                        if (transcriptionPart) {
-                            const text = transcriptionPart.text;
-                            setTranscription(prev => prev + (text || ''));
-                        }
-                    },
-                    onerror: (e: any) => {
-                        console.error('Live API Error (Detailed):', {
-                            message: e?.message,
-                            name: e?.name,
-                            stack: e?.stack,
-                            code: e?.code,
-                            reason: e?.reason,
-                            raw: e
-                        });
-                        const errorMsg = e?.message || e?.reason || '';
-                        if (errorMsg.includes('Requested entity was not found') || errorMsg.includes('API key not valid')) {
-                            setError('API Key error. Please select a valid key.');
-                            if (typeof window !== 'undefined' && (window as any).aistudio) {
-                                (window as any).aistudio.openSelectKey();
-                            }
-                        } else {
-                            setError(`Connection error: ${errorMsg || 'Please check your internet and try again.'}`);
-                        }
-                        handleStopRecording(true);
-                    },
-                    onclose: () => {
-                        cleanupAudio();
-                    },
-                },
-                config: {
-                    responseModalities: [Modality.AUDIO],
-                    inputAudioTranscription: {},
-                },
-            });
+            let finalTranscript = '';
+
+            recognition.onresult = (event: any) => {
+                let interim = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    if (result.isFinal) {
+                        finalTranscript += result[0].transcript + ' ';
+                    } else {
+                        interim += result[0].transcript;
+                    }
+                }
+                setTranscription(finalTranscript + interim);
+            };
+
+            recognition.onerror = (event: any) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    setError('Microphone access denied. Please allow microphone permissions and try again.');
+                    handleStopRecording(true);
+                } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                    // no-speech and aborted are normal when stopping; ignore them
+                    setError(`Speech recognition error: ${event.error}. Try again.`);
+                }
+            };
+
+            recognition.onend = () => {
+                // Auto-restart if still in recording state (speech API can time out)
+                if (recognitionRef.current && appState === AppState.RECORDING) {
+                    try { recognition.start(); } catch {}
+                }
+            };
+
+            recognition.start();
+            recognitionRef.current = recognition;
         } catch (err) {
             console.error('Error starting recording:', err);
             setError('Could not access microphone. Please check permissions and try again.');
@@ -163,12 +148,6 @@ const App: React.FC = () => {
     };
 
     const handleStopRecording = async (isError = false) => {
-        try {
-            const session = await sessionPromiseRef.current;
-            session?.close();
-        } catch {
-            // Session may already be closed or failed to connect
-        }
         cleanupAudio();
         
         if (isError) {
@@ -254,7 +233,7 @@ const App: React.FC = () => {
                         exit={{ opacity: 0, scale: 1.1 }}
                         className="w-full"
                     >
-                        <Recorder isRecording={true} transcription={transcription} onStopRecording={() => handleStopRecording(false)} />
+                        <Recorder isRecording={true} transcription={transcription} audioLevel={audioLevel} onStopRecording={() => handleStopRecording(false)} />
                     </motion.div>
                 );
             case AppState.TYPING:
