@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Chat } from '@google/genai';
 import { createDreamChat } from '../services/geminiService';
-import type { ChatMessage, DreamAnalysisData, DreamContext } from '../types';
+import type { ChatMessage, DreamAnalysisData } from '../types';
 import { escapeHtml } from '../utils/sanitize';
 import InterpretationCards from './InterpretationCards';
 import {
@@ -20,7 +20,6 @@ import {
 interface DreamAnalysisProps {
   analysis: DreamAnalysisData;
   dreamText: string;
-  context: DreamContext | null;
   onReset: () => void;
 }
 
@@ -111,7 +110,7 @@ const platforms: SocialPlatform[] = [
   },
 ];
 
-const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, context, onReset }) => {
+const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, onReset }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
@@ -136,7 +135,7 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
     setUserInput('');
 
     if (!chatRef.current) {
-      chatRef.current = createDreamChat(dreamText, context);
+      chatRef.current = createDreamChat(dreamText);
     }
 
     try {
@@ -206,16 +205,16 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
         >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-dreamy-purple text-xs font-bold uppercase tracking-[0.2em] mb-6">
                 <Sparkles size={14} />
                 Analysis Complete
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 font-display tracking-tight">Your Dream, <span className="text-transparent bg-clip-text bg-gradient-to-r from-dreamy-purple to-dreamy-indigo">Unveiled</span></h1>
-            <p className="text-xl text-medium-text font-light">A journey through the symbols of your subconscious.</p>
+            <h1 className="text-3xl md:text-7xl font-bold text-white mb-3 font-display tracking-tight">Your Dream, <span className="text-transparent bg-clip-text bg-gradient-to-r from-dreamy-purple to-dreamy-indigo">Unveiled</span></h1>
+            <p className="text-base md:text-xl text-medium-text font-light">A journey through the symbols of your subconscious.</p>
         </motion.div>
-        
+
         {/* Vision Sketch */}
         <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -224,9 +223,9 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
             className="mb-12"
         >
             <div className="glass-card overflow-hidden !p-0 group max-w-4xl mx-auto">
-                <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-white font-display flex items-center gap-3">
-                        <Sparkles className="text-dreamy-purple" size={24} />
+                <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between">
+                    <h2 className="text-xl md:text-2xl font-bold text-white font-display flex items-center gap-2 md:gap-3">
+                        <Sparkles className="text-dreamy-purple" size={20} />
                         Vision Sketch
                     </h2>
                     <div className="flex gap-2">
@@ -255,9 +254,9 @@ const DreamAnalysis: React.FC<DreamAnalysisProps> = ({ analysis, dreamText, cont
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
-                <div className="p-6 bg-white/5">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-5">
+                <div className="p-4 md:p-6 bg-white/5">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center gap-4">
                             <span className="text-xs text-medium-text uppercase tracking-widest font-semibold">Share</span>
                             <div className="flex gap-3">
                                 {platforms.map((platform) => (

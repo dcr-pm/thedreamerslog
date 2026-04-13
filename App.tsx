@@ -1,15 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AppState, DreamAnalysisData, DreamContext, DreamTags, EMPTY_DREAM_TAGS } from './types';
+import { AppState, DreamAnalysisData, DreamTags, EMPTY_DREAM_TAGS } from './types';
 import * as geminiService from './services/geminiService';
 import Recorder from './components/Recorder';
 import DreamAnalysis from './components/DreamAnalysis';
-import ContextForm from './components/ContextForm';
 import LoadingSpinner from './components/LoadingSpinner';
 import DreamTagPicker from './components/DreamTagPicker';
 import DreamyBackground from './components/DreamyBackground';
 import Typewriter from './components/Typewriter';
-import { Moon, Sparkles, PenLine, Mic, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Moon, Sparkles, PenLine, Mic, ArrowLeft } from 'lucide-react';
 
 const App: React.FC = () => {
     const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -17,8 +16,6 @@ const App: React.FC = () => {
     const [typedDream, setTypedDream] = useState('');
     const [finalDreamText, setFinalDreamText] = useState('');
     const [analysisResult, setAnalysisResult] = useState<DreamAnalysisData | null>(null);
-    const [interpretation, setInterpretation] = useState<string | null>(null);
-    const [dreamContext, setDreamContext] = useState<DreamContext | null>(null);
     const [dreamTags, setDreamTags] = useState<DreamTags>(EMPTY_DREAM_TAGS);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -186,37 +183,23 @@ const App: React.FC = () => {
 
     const startAnalysis = async (dreamText: string) => {
         setFinalDreamText(dreamText);
-        setAppState(AppState.ANALYZING_INTERPRETATION);
+        setAppState(AppState.ANALYZING);
         setError(null);
+        setLoadingMessage('Weaving the threads of your subconscious...');
 
         try {
-            setLoadingMessage('Weaving the threads of your subconscious...');
-            const interpretationResult = await geminiService.analyzeDream(dreamText, dreamTags);
-            setInterpretation(interpretationResult);
-            setAppState(AppState.AWAITING_CONTEXT);
-        } catch (err) {
-            console.error('Interpretation error:', err);
-            setError('There was an issue interpreting your dream. Please try again.');
-            setAppState(AppState.IDLE);
-        } finally {
-            setLoadingMessage('');
-        }
-    };
-    
-    const handleContextSubmit = async (context: DreamContext) => {
-        setDreamContext(context);
-        setAppState(AppState.ANALYZING_VISUAL);
+            // Run interpretation and image generation in parallel
+            const [interpretationResult, imageUrl] = await Promise.all([
+                geminiService.analyzeDream(dreamText, dreamTags),
+                geminiService.generateDreamImage(dreamText, dreamTags),
+            ]);
 
-        try {
-            setLoadingMessage("Crafting your dream's tapestry...");
-            const imageUrl = await geminiService.generateDreamImage(finalDreamText, context, dreamTags);
-
-            setAnalysisResult({ imageUrl, interpretation: interpretation! });
+            setAnalysisResult({ imageUrl, interpretation: interpretationResult });
             setAppState(AppState.COMPLETE);
         } catch (err) {
-            console.error('Image generation error:', err);
-            setError('Image generation failed. Your interpretation is saved — try generating the vision again.');
-            setAppState(AppState.AWAITING_CONTEXT);
+            console.error('Analysis error:', err);
+            setError('There was an issue analyzing your dream. Please try again.');
+            setAppState(AppState.IDLE);
         } finally {
             setLoadingMessage('');
         }
@@ -228,8 +211,6 @@ const App: React.FC = () => {
         setTypedDream('');
         setFinalDreamText('');
         setAnalysisResult(null);
-        setInterpretation(null);
-        setDreamContext(null);
         setDreamTags(EMPTY_DREAM_TAGS);
         setError(null);
     };
@@ -299,18 +280,6 @@ const App: React.FC = () => {
                         </div>
                     </motion.div>
                 );
-            case AppState.AWAITING_CONTEXT:
-                return (
-                    <motion.div 
-                        key="context"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        className="w-full"
-                    >
-                        <ContextForm onSubmit={handleContextSubmit} interpretation={interpretation || ''} onBack={() => setAppState(AppState.IDLE)} />
-                    </motion.div>
-                );
             case AppState.COMPLETE:
                 return (
                     <motion.div 
@@ -319,16 +288,14 @@ const App: React.FC = () => {
                         animate={{ opacity: 1 }}
                         className="w-full"
                     >
-                        <DreamAnalysis 
-                            analysis={analysisResult!} 
-                            dreamText={finalDreamText} 
-                            context={dreamContext} 
-                            onReset={handleReset} 
+                        <DreamAnalysis
+                            analysis={analysisResult!}
+                            dreamText={finalDreamText}
+                            onReset={handleReset}
                         />
                     </motion.div>
                 );
-            case AppState.ANALYZING_INTERPRETATION:
-            case AppState.ANALYZING_VISUAL:
+            case AppState.ANALYZING:
                 return (
                     <motion.div 
                         key="loading"

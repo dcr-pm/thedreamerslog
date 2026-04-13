@@ -1,5 +1,5 @@
 import { GoogleGenAI, Modality, Chat } from "@google/genai";
-import { DreamContext, DreamTags } from "../types";
+import { DreamTags } from "../types";
 
 const getGenAI = () => {
   const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
@@ -9,18 +9,12 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export const generateDreamImage = async (dreamText: string, context: DreamContext, tags?: DreamTags): Promise<string> => {
+export const generateDreamImage = async (dreamText: string, tags?: DreamTags): Promise<string> => {
   const ai = getGenAI();
-
-  let contextPrompt = 'The dreamer provided this additional context:';
-  if (context.emotion) contextPrompt += `\n- Primary emotion felt during the dream: ${context.emotion}`;
-  if (context.wakingFeeling) contextPrompt += `\n- How they felt upon waking: ${context.wakingFeeling}`;
-  if (context.conclusion) contextPrompt += `\n- The dream felt like it ${context.conclusion}.`;
-  if (context.personDescription) contextPrompt += `\n- Description of a significant person in the dream: ${context.personDescription}. Please incorporate this description into the visual representation of any people present.`;
-  if (context.additionalInfo) contextPrompt += `\n- Other details: ${context.additionalInfo}`;
 
   // Build dreamer identity instructions for accurate representation
   let dreamerIdentity = '';
+  let moodHint = '';
   if (tags) {
     const parts: string[] = [];
     if (tags.gender && tags.gender !== 'Prefer not to say') {
@@ -32,14 +26,15 @@ export const generateDreamImage = async (dreamText: string, context: DreamContex
     if (parts.length > 0) {
       dreamerIdentity = `\nIMPORTANT - Dreamer identity: ${parts.join(', ')}. Any depiction of the dreamer or main character in the sketch MUST match this identity. Do NOT depict them as a different gender or age.`;
     }
+    if (tags.mood.length > 0) {
+      moodHint = `\nThe emotional tone of the dream: ${tags.mood.join(', ')}.`;
+    }
   }
 
   const prompt = `Create a pencil sketch of this dream, with some scribbles. The style should be loose, like a drawing in a personal journal, leaving it open to interpretation. It can be a single scene or a collection of symbolic components based on the dream.
-${dreamerIdentity}
+${dreamerIdentity}${moodHint}
 
 Dream: "${dreamText}"
-
-${context.emotion || context.wakingFeeling || context.conclusion || context.personDescription || context.additionalInfo ? contextPrompt : ''}
 `;
   
   const response = await ai.models.generateContent({
@@ -103,27 +98,13 @@ Dream: "${dreamText}"`;
   return response.text;
 };
 
-export const createDreamChat = (dreamText: string, context: DreamContext | null): Chat => {
+export const createDreamChat = (dreamText: string): Chat => {
   const ai = getGenAI();
-  
-  let contextSystemInstruction = '';
-  if (context) {
-      let parts = [];
-      if (context.emotion) parts.push(`Emotion felt was '${context.emotion}'`);
-      if (context.wakingFeeling) parts.push(`waking feeling was '${context.wakingFeeling}'`);
-      if (context.conclusion) parts.push(`the dream conclusion was '${context.conclusion}'`);
-      if (context.personDescription) parts.push(`a person was described as '${context.personDescription}'`);
-      if (context.additionalInfo) parts.push(`other details provided: '${context.additionalInfo}'`);
-      
-      if (parts.length > 0) {
-        contextSystemInstruction = `The dreamer also provided the following context: ${parts.join(', ')}.`;
-      }
-  }
 
   return ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: {
-      systemInstruction: `You are a dream analysis expert. The user has just had the following dream: "${dreamText}". ${contextSystemInstruction} They will now ask you follow-up questions about the symbols and themes in their dream. Provide insightful, concise answers based on psychological principles.`,
+      systemInstruction: `You are a dream analysis expert. The user has just had the following dream: "${dreamText}". They will now ask you follow-up questions about the symbols and themes in their dream. Provide insightful, concise answers based on psychological principles.`,
     },
   });
 };
